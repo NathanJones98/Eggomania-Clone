@@ -1,0 +1,972 @@
+volatile int pixel_buffer_start;
+
+short int plot_Bird[16][32];
+short int plotRev_Bird[16][32];
+short int plot_Dog[18][26];
+short int plotRev_Dog[18][26];
+
+//Colors
+short int black = 0;
+short int green = 0x07E0;
+short int red = 0xF800;
+short int blue = 0x001F;
+short int yellow = 0xFFE0;
+short int pink = 0xF81F;
+short int turquoise = 0x07FF;
+short int orange = 111111110000000;
+short int white = 65535;
+
+int left = 1;
+int right = 0;
+int running = 0;
+int notRunning = 1;
+int midRun = 2;
+
+int numOfEggs = 0;
+int xPos_Egg[12];
+int yPos_Egg[12];
+
+//draw each pixel
+void draw(int x, int y, short int color){
+	if(x < 320 && y<240){
+		*(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = color;
+	}
+}
+
+void clear(short int color){
+	
+	int x;
+	int y;
+	
+	for (x = 0; x < 320; x++){
+		for (y = 0; y < 240; y++){
+
+			draw(x, y, color);
+		}
+	}
+			
+}
+
+void waitForSync(){
+	volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
+	int status;
+	//make the request for the swap
+	*(pixel_ctrl_ptr)=1; //writes 1 to the front buffer register, doesn't change it, is a signal
+	status = *(pixel_ctrl_ptr+3); //as above, pointer arithmetic says 3 -> plus 3 words, 12 bytes
+	while((status&0x01)!=0){ //polling loop in C!
+		status=*(pixel_ctrl_ptr+3); 
+	}
+}
+
+void defineBird(short int background){
+	
+	int x, y;
+	
+	//initialize the array
+	for(x=0; x<16; x++){
+		for(y=0; y<32; y++){
+			plot_Bird[x][y] = background;
+		}
+	}
+		
+	//hardcode for the bird
+	
+	plot_Bird[4][1] = green;
+	plot_Bird[5][1] = green;
+	plot_Bird[8][1] = green;
+	plot_Bird[9][1] = green;
+	
+	plot_Bird[6][2] = green;
+	plot_Bird[7][2] = green;
+	
+	plot_Bird[6][3] = green;
+	plot_Bird[7][3] = green;
+	
+	plot_Bird[6][4] = green;
+	plot_Bird[7][4] = green;
+	
+	plot_Bird[6][5] = green;
+	plot_Bird[7][5] = green;
+	
+	plot_Bird[5][6] = turquoise;
+	plot_Bird[6][6] = turquoise;
+	plot_Bird[7][6] = turquoise;
+	plot_Bird[8][6] = turquoise;
+	
+	plot_Bird[4][7] = turquoise;
+	plot_Bird[5][7] = turquoise;
+	plot_Bird[6][7] = turquoise;
+	plot_Bird[7][7] = turquoise;
+	plot_Bird[8][7] = black;
+	plot_Bird[9][7] = turquoise;
+	plot_Bird[10][7] = turquoise;
+	
+	plot_Bird[4][8] = turquoise;
+	plot_Bird[5][8] = turquoise;
+	plot_Bird[6][8] = turquoise;
+	plot_Bird[7][8] = turquoise;
+	plot_Bird[8][8] = black;
+	plot_Bird[9][8] = turquoise;
+	plot_Bird[10][8] = turquoise;
+	
+	plot_Bird[4][9] = turquoise;
+	plot_Bird[5][9] = turquoise;
+	plot_Bird[6][9] = turquoise;
+	plot_Bird[7][9] = turquoise;
+	plot_Bird[8][9] = turquoise;
+	plot_Bird[9][9] = turquoise;
+	plot_Bird[10][9] = turquoise;
+	plot_Bird[11][9] = turquoise;
+	plot_Bird[12][9] = turquoise;
+	
+	plot_Bird[4][10] = turquoise;
+	plot_Bird[5][10] = turquoise;
+	plot_Bird[6][10] = turquoise;
+	plot_Bird[7][10] = turquoise;
+	plot_Bird[8][10] = black;
+	plot_Bird[9][10] = pink;
+	plot_Bird[10][10] = pink;
+	plot_Bird[11][10] = pink;
+	plot_Bird[12][10] = pink;
+	plot_Bird[13][10] = pink;
+	
+	plot_Bird[5][11] = turquoise;
+	plot_Bird[6][11] = turquoise;
+	plot_Bird[7][11] = turquoise;
+	plot_Bird[8][11] = black;
+	plot_Bird[9][11] = black;
+	plot_Bird[10][11] = black;
+	plot_Bird[11][11] = black;
+	plot_Bird[12][11] = black;
+	plot_Bird[13][11] = black;
+	plot_Bird[6][12] = turquoise;
+	plot_Bird[7][12] = turquoise;
+	plot_Bird[8][12] = pink;
+	plot_Bird[9][12] = pink;
+	plot_Bird[10][12] = pink;
+	plot_Bird[11][12] = pink;
+	plot_Bird[12][12] = pink;
+	plot_Bird[13][12] = pink;
+	
+	plot_Bird[1][13] = orange;
+	plot_Bird[2][13] = orange;
+	plot_Bird[3][13] = orange;
+	plot_Bird[6][13] = orange;
+	plot_Bird[7][13] = orange;
+	
+	plot_Bird[2][14] = orange;
+	plot_Bird[3][14] = orange;
+	plot_Bird[4][14] = orange;
+	plot_Bird[6][14] = orange;
+	plot_Bird[7][14] = orange;
+	plot_Bird[8][14] = orange;
+	
+	plot_Bird[0][15] = orange;
+	plot_Bird[3][15] = orange;
+	plot_Bird[4][15] = orange;
+	plot_Bird[6][15] = orange;
+	plot_Bird[7][15] = orange;
+	plot_Bird[8][15] = orange;
+	
+	plot_Bird[0][16] = orange;
+	plot_Bird[1][16] = orange;
+	plot_Bird[4][16] = orange;
+	plot_Bird[7][16] = orange;
+	plot_Bird[8][16] = orange;
+	
+	for (x=4; x <11; x++){
+		for(y=17; y<25; y++){
+			
+			plot_Bird[x][y] = orange;
+			
+		}
+	}
+		
+	plot_Bird[1][17] = orange;
+	plot_Bird[2][17] = orange;
+	
+	plot_Bird[2][18] = orange;
+	plot_Bird[3][18] = orange;
+	plot_Bird[11][18] = orange;
+	
+	plot_Bird[0][19] = orange;
+	plot_Bird[1][19] = orange;
+	plot_Bird[6][19] = black;
+	plot_Bird[7][19] = black;
+	plot_Bird[11][19] = orange;
+	plot_Bird[12][19] = orange;
+	
+	plot_Bird[1][20] = orange;
+	plot_Bird[2][20] = orange;
+	plot_Bird[3][20] = orange;
+	plot_Bird[7][20] = black;
+	plot_Bird[8][20] = black;
+	plot_Bird[11][20] = orange;
+	plot_Bird[12][20] = orange;
+	
+	plot_Bird[6][21] = black;
+	plot_Bird[8][21] = black;
+	plot_Bird[9][21] = black;
+	plot_Bird[11][21] = orange;
+	plot_Bird[12][21] = orange;
+	
+	plot_Bird[7][22] = black;
+	plot_Bird[1][22] = orange;
+	plot_Bird[2][22] = orange;
+	plot_Bird[11][22] = orange;
+	plot_Bird[12][22] = orange;
+	
+	plot_Bird[0][23] = orange;
+	plot_Bird[1][23] = orange;
+	plot_Bird[2][23] = orange;
+	plot_Bird[3][23] = orange;
+	plot_Bird[11][23] = orange;
+	plot_Bird[12][23] = orange;
+	
+	plot_Bird[1][24] = orange;
+	plot_Bird[2][24] = orange;
+	plot_Bird[11][24] = orange;
+	
+	for(x=5; x<11; x++){
+			plot_Bird[x][25] = orange;
+		}
+	
+}
+
+void drawBird(int bird_X, int bird_Y, short int background, int direction, int run){
+	
+	//Bird dimension is (starting at 0) 15 x 31 - 512 total pixels
+	//for direction: 1 = left, 0 = right
+	//for run: 0 = running, 1 = not running, 2 = midrun 
+	
+	int x, y, color;
+	
+	//for run: 0 = running, 1 = not running, 2 = midrun 
+	
+	//initialize the array
+	for(x=0; x<16; x++){
+		for(y=26; y<32; y++){
+			plot_Bird[x][y] = background;
+		}
+	}
+	
+	if(run == 0){
+		
+		for (x=9; x <11; x++){
+			for(y=26; y<31; y++){
+
+				plot_Bird[x][y] = yellow;
+
+			}
+		}
+		
+		
+		for (x=5; x <7; x++){
+			for(y=26; y<31; y++){
+
+				plot_Bird[x][y] = yellow;
+
+			}
+		}
+		
+		plot_Bird[2][0] = green;
+		plot_Bird[3][0] = green;
+		plot_Bird[10][0] = green;
+		plot_Bird[11][0] = green;
+		
+		plot_Bird[4][29] = yellow;
+		plot_Bird[11][29] = yellow;
+		plot_Bird[12][29] = yellow;
+		
+		plot_Bird[3][30] = yellow;
+		plot_Bird[4][30] = yellow;
+		plot_Bird[9][30] = black;
+		plot_Bird[11][30] = yellow;
+		plot_Bird[12][30] = yellow;
+		plot_Bird[13][30] = yellow;
+		
+		plot_Bird[11][31] = yellow;
+		plot_Bird[12][31] = yellow;
+		
+	} else if (run == 1){
+		
+		for (x=9; x <11; x++){
+			for(y=26; y<31; y++){
+
+				plot_Bird[x][y] = yellow;
+
+			}
+		}
+		
+		plot_Bird[2][2] = green;
+		plot_Bird[3][2] = green;
+		plot_Bird[10][2] = green;
+		plot_Bird[11][2] = green;
+		
+		plot_Bird[5][26] = yellow;
+		plot_Bird[6][26] = yellow;
+		
+		plot_Bird[6][27] = yellow;
+		
+		plot_Bird[6][28] = yellow;
+		plot_Bird[7][28] = yellow;
+		
+		plot_Bird[4][29] = yellow;
+		plot_Bird[5][29] = yellow;
+		plot_Bird[6][29] = yellow;
+		plot_Bird[7][29] = yellow;
+		plot_Bird[11][29] = yellow;
+		
+		plot_Bird[11][30] = yellow;
+		plot_Bird[12][30] = yellow;
+		
+	} else if(run == 2){
+			
+		plot_Bird[2][2] = green;
+		plot_Bird[3][2] = green;
+		plot_Bird[10][2] = green;
+		plot_Bird[11][2] = green;
+		
+		plot_Bird[5][26] = yellow;
+		plot_Bird[6][26] = yellow;
+		plot_Bird[9][26] = yellow;
+		
+		plot_Bird[6][27] = yellow;
+		plot_Bird[9][27] = yellow;
+		plot_Bird[10][27] = yellow;
+		plot_Bird[11][27] = yellow;
+		
+		plot_Bird[6][28] = yellow;
+		plot_Bird[7][28] = yellow;
+		plot_Bird[10][28] = yellow;
+		plot_Bird[11][28] = yellow;
+		
+		plot_Bird[7][29] = yellow;
+		plot_Bird[11][29] = yellow;
+		
+		plot_Bird[7][30] = yellow;
+		plot_Bird[8][30] = yellow;
+		plot_Bird[9][30] = yellow;
+		
+	}
+	
+	
+	
+	
+	//create the reversed image
+	for(x=0; x<16; x++){
+		for(y=0; y<32; y++){
+			
+			int a = x - 15;
+			
+			if(a < 0){
+				a = -a;
+			}
+					
+			plotRev_Bird[a][y] = plot_Bird[x][y];
+		}
+	}
+	
+	//print
+	for(x=0; x<16; x++){
+		for(y=0; y<32; y++){
+			
+			if (direction == 0){
+				draw(bird_X + x, bird_Y + y, plot_Bird[x][y]);
+			} else if (direction == 1){
+				draw(bird_X + x, bird_Y + y, plotRev_Bird[x][y]);	
+			}
+		}
+	}
+	
+}
+
+void defineDog(short int background){
+	int x, y;
+	//initialize the array
+	for(x=0; x<18; x++){
+		for(y=0; y<26; y++){
+			plot_Dog[x][y] = background;
+		}
+	}
+	
+	//HardCode the dog
+	plot_Dog[7][1] = orange;
+	plot_Dog[8][1] = orange;
+	plot_Dog[14][1] = orange;
+	
+	plot_Dog[7][2] = pink;
+	plot_Dog[8][2] = pink;
+	plot_Dog[14][2] = pink;
+	
+	plot_Dog[6][3] = orange;
+	plot_Dog[7][3] = pink;
+	plot_Dog[8][3] = pink;
+	plot_Dog[9][3] = orange;
+	plot_Dog[13][3] = orange;
+	plot_Dog[14][3] = pink;
+	
+	plot_Dog[6][4] = orange;
+	plot_Dog[7][4] = pink;
+	plot_Dog[8][4] = pink;
+	plot_Dog[9][4] = orange;
+	plot_Dog[10][4] = orange;
+	plot_Dog[11][4] = orange;
+	plot_Dog[12][4] = orange;
+	plot_Dog[13][4] = orange;
+	plot_Dog[14][4] = orange;
+	
+	plot_Dog[6][5] = orange;
+	plot_Dog[7][5] = orange;
+	plot_Dog[8][5] = orange;
+	plot_Dog[9][5] = orange;
+	plot_Dog[10][5] = orange;
+	plot_Dog[11][5] = orange;
+	plot_Dog[12][5] = orange;
+	plot_Dog[13][5] = orange;
+	plot_Dog[14][5] = orange;
+	plot_Dog[15][5] = orange;
+	
+	plot_Dog[6][6] = orange;
+	plot_Dog[7][6] = orange;
+	plot_Dog[8][6] = orange;
+	plot_Dog[9][6] = orange;
+	plot_Dog[10][6] = white;
+	plot_Dog[11][6] = white;
+	plot_Dog[12][6] = orange;
+	plot_Dog[13][6] = white;
+	plot_Dog[14][6] = orange;
+	plot_Dog[15][6] = orange;
+	
+	plot_Dog[5][7] = orange;
+	plot_Dog[6][7] = orange;
+	plot_Dog[7][7] = white;
+	plot_Dog[8][7] = white;
+	plot_Dog[9][7] = orange;
+	plot_Dog[10][7] = white;
+	plot_Dog[11][7] = white;
+	plot_Dog[12][7] = orange;
+	plot_Dog[13][7] = white;
+	plot_Dog[14][7] = orange;
+	plot_Dog[15][7] = orange;
+	
+	plot_Dog[5][8] = orange;
+	plot_Dog[6][8] = orange;
+	plot_Dog[7][8] = white;
+	plot_Dog[8][8] = black;
+	plot_Dog[9][8] = black;
+	plot_Dog[10][8] = orange;
+	plot_Dog[11][8] = orange;
+	plot_Dog[12][8] = orange;
+	plot_Dog[13][8] = orange;
+	plot_Dog[14][8] = black;
+	plot_Dog[15][8] = orange;
+	plot_Dog[16][8] = orange;
+	
+	plot_Dog[4][9] = orange;
+	plot_Dog[5][9] = orange;
+	plot_Dog[6][9] = white;
+	plot_Dog[7][9] = white;
+	plot_Dog[8][9] = black;
+	plot_Dog[9][9] = black;
+	plot_Dog[10][9] = orange;
+	plot_Dog[11][9] = orange;
+	plot_Dog[12][9] = orange;
+	plot_Dog[13][9] = white;
+	plot_Dog[14][9] = black;
+	plot_Dog[15][9] = white;
+	plot_Dog[16][9] = white;
+	
+	plot_Dog[4][10] = orange;
+	plot_Dog[5][10] = orange;
+	plot_Dog[6][10] = white;
+	plot_Dog[7][10] = white;
+	plot_Dog[8][10] = white;
+	plot_Dog[9][10] = white;
+	plot_Dog[10][10] = white;
+	plot_Dog[11][10] = orange;
+	plot_Dog[12][10] = orange;
+	plot_Dog[13][10] = white;
+	plot_Dog[14][10] = white;
+	plot_Dog[15][10] = white;
+	plot_Dog[16][10] = white;
+	
+	plot_Dog[4][11] = orange;
+	plot_Dog[5][11] = white;
+	plot_Dog[6][11] = white;
+	plot_Dog[7][11] = white;
+	plot_Dog[8][11] = white;
+	plot_Dog[9][11] = white;
+	plot_Dog[10][11] = white;
+	plot_Dog[11][11] = black;
+	plot_Dog[12][11] = black;
+	plot_Dog[13][11] = black;
+	plot_Dog[14][11] = white;
+	plot_Dog[15][11] = white;
+	plot_Dog[16][11] = white;
+	plot_Dog[17][11] = white;
+	
+	plot_Dog[1][12] = white;
+	plot_Dog[2][12] = white;
+	plot_Dog[4][12] = black;
+	plot_Dog[5][12] = white;
+	plot_Dog[6][12] = white;
+	plot_Dog[7][12] = white;
+	plot_Dog[8][12] = white;
+	plot_Dog[9][12] = black;
+	plot_Dog[10][12] = white;
+	plot_Dog[11][12] = white;
+	plot_Dog[12][12] = black;
+	plot_Dog[13][12] = white;
+	plot_Dog[14][12] = white;
+	plot_Dog[15][12] = black;
+	plot_Dog[16][12] = white;
+	plot_Dog[17][12] = white;
+	
+	plot_Dog[0][13] = orange;
+	plot_Dog[1][13] = orange;
+	plot_Dog[2][13] = orange;
+	plot_Dog[4][13] = orange;
+	plot_Dog[5][13] = white;
+	plot_Dog[6][13] = white;
+	plot_Dog[7][13] = white;
+	plot_Dog[8][13] = white;
+	plot_Dog[9][13] = black;
+	plot_Dog[10][13] = black;
+	plot_Dog[11][13] = black;
+	plot_Dog[12][13] = black;
+	plot_Dog[13][13] = black;
+	plot_Dog[14][13] = black;
+	plot_Dog[15][13] = black;
+	plot_Dog[16][13] = white;
+	plot_Dog[17][13] = white;
+	
+	plot_Dog[0][14] = orange;
+	plot_Dog[1][14] = orange;
+	plot_Dog[2][14] = orange;
+	plot_Dog[4][14] = orange;
+	plot_Dog[5][14] = white;
+	plot_Dog[6][14] = white;
+	plot_Dog[7][14] = white;
+	plot_Dog[8][14] = white;
+	plot_Dog[9][14] = white;
+	plot_Dog[10][14] = black;
+	plot_Dog[11][14] = red;
+	plot_Dog[12][14] = red;
+	plot_Dog[13][14] = red;
+	plot_Dog[14][14] = black;
+	plot_Dog[15][14] = white;
+	plot_Dog[16][14] = white;
+	plot_Dog[17][14] = white;
+	
+	plot_Dog[0][15] = orange;
+	plot_Dog[1][15] = orange;
+	plot_Dog[2][15] = orange;
+	plot_Dog[3][15] = black;
+	plot_Dog[4][15] = orange;
+	plot_Dog[5][15] = white;
+	plot_Dog[6][15] = white;
+	plot_Dog[7][15] = white;
+	plot_Dog[8][15] = white;
+	plot_Dog[9][15] = white;
+	plot_Dog[10][15] = black;
+	plot_Dog[11][15] = red;
+	plot_Dog[12][15] = red;
+	plot_Dog[13][15] = red;
+	plot_Dog[14][15] = black;
+	plot_Dog[15][15] = white;
+	plot_Dog[16][15] = white;
+	plot_Dog[17][15] = white;
+	
+	plot_Dog[0][16] = orange;
+	plot_Dog[1][16] = orange;
+	plot_Dog[2][16] = black;
+	plot_Dog[3][16] = orange;
+	plot_Dog[4][16] = orange;
+	plot_Dog[5][16] = orange;
+	plot_Dog[6][16] = white;
+	plot_Dog[7][16] = white;
+	plot_Dog[8][16] = white;
+	plot_Dog[9][16] = white;
+	plot_Dog[10][16] = black;
+	plot_Dog[11][16] = red;
+	plot_Dog[12][16] = red;
+	plot_Dog[13][16] = red;
+	plot_Dog[14][16] = black;
+	plot_Dog[15][16] = white;
+	plot_Dog[16][16] = white;
+	
+	plot_Dog[1][17] = black;
+	plot_Dog[2][17] = orange;
+	plot_Dog[3][17] = orange;
+	plot_Dog[4][17] = orange;
+	plot_Dog[5][17] = orange;
+	plot_Dog[6][17] = orange;
+	plot_Dog[7][17] = white;
+	plot_Dog[8][17] = white;
+	plot_Dog[9][17] = white;
+	plot_Dog[10][17] = white;
+	plot_Dog[11][17] = black;
+	plot_Dog[12][17] = black;
+	plot_Dog[13][17] = black;
+	plot_Dog[14][17] = white;
+	plot_Dog[15][17] = white;
+	
+	plot_Dog[2][18] = orange;
+	plot_Dog[3][18] = orange;
+	plot_Dog[4][18] = orange;
+	plot_Dog[5][18] = orange;
+	plot_Dog[6][18] = orange;
+	plot_Dog[7][18] = white;
+	plot_Dog[8][18] = white;
+	plot_Dog[9][18] = white;
+	plot_Dog[10][18] = white;
+	plot_Dog[11][18] = white;
+	plot_Dog[12][18] = white;
+	plot_Dog[13][18] = white;
+	plot_Dog[14][18] = white;
+	
+	plot_Dog[2][19] = orange;
+	plot_Dog[3][19] = orange;
+	plot_Dog[4][19] = orange;
+	plot_Dog[5][19] = orange;
+	plot_Dog[6][19] = orange;
+	plot_Dog[7][19] = orange;
+	plot_Dog[8][19] = white;
+	plot_Dog[9][19] = white;
+	plot_Dog[10][19] = white;
+	plot_Dog[11][19] = white;
+	plot_Dog[12][19] = white;
+	plot_Dog[13][19] = white;
+	plot_Dog[14][19] = white;
+	
+	plot_Dog[2][20] = orange;
+	plot_Dog[3][20] = orange;
+	plot_Dog[4][20] = orange;
+	plot_Dog[5][20] = orange;
+	plot_Dog[6][20] = orange;
+	plot_Dog[7][20] = orange;
+	plot_Dog[8][20] = orange;
+	plot_Dog[9][20] = white;
+	plot_Dog[10][20] = white;
+	plot_Dog[11][20] = white;
+	plot_Dog[12][20] = white;
+	plot_Dog[13][20] = white;
+	plot_Dog[14][20] = orange;
+	
+	plot_Dog[2][21] = orange;
+	plot_Dog[3][21] = orange;
+	plot_Dog[4][21] = orange;
+	plot_Dog[5][21] = orange;
+	plot_Dog[6][21] = orange;
+	plot_Dog[7][21] = orange;
+	plot_Dog[8][21] = orange;
+	plot_Dog[9][21] = white;
+	plot_Dog[10][21] = white;
+	plot_Dog[11][21] = white;
+	plot_Dog[12][21] = white;
+	plot_Dog[13][21] = white;
+	plot_Dog[14][21] = orange;
+	
+	plot_Dog[2][22] = orange;
+	plot_Dog[3][22] = orange;
+	plot_Dog[4][22] = orange;
+	plot_Dog[5][22] = black;
+	plot_Dog[6][22] = black;
+	plot_Dog[7][22] = orange;
+	plot_Dog[8][22] = orange;
+	plot_Dog[9][22] = orange;
+	plot_Dog[10][22] = white;
+	plot_Dog[11][22] = white;
+	plot_Dog[12][22] = white;
+	plot_Dog[13][22] = orange;
+	plot_Dog[14][22] = orange;
+	
+	plot_Dog[2][23] = orange;
+	plot_Dog[3][23] = orange;
+	plot_Dog[5][23] = orange;
+	plot_Dog[6][23] = orange;
+	plot_Dog[9][23] = orange;
+	plot_Dog[10][23] = orange;
+	plot_Dog[11][23] = white;
+	plot_Dog[12][23] = white;
+	plot_Dog[13][23] = orange;
+	plot_Dog[14][23] = orange;
+	
+	plot_Dog[2][24] = orange;
+	plot_Dog[3][24] = orange;
+	plot_Dog[5][24] = orange;
+	plot_Dog[6][24] = orange;
+	plot_Dog[9][24] = orange;
+	plot_Dog[10][24] = orange;
+	plot_Dog[11][24] = white;
+	plot_Dog[12][24] = orange;
+	plot_Dog[13][24] = orange;
+	
+	plot_Dog[2][25] = orange;
+	plot_Dog[5][25] = orange;
+	plot_Dog[10][25] = orange;
+	plot_Dog[13][25] = orange;
+	
+	//create the reversed image
+	for(x=0; x<18; x++){
+		for(y=0; y<26; y++){
+			
+			int a = x - 17;
+			
+			if(a < 0){
+				a = -a;
+			}
+					
+			plotRev_Dog[a][y] = plot_Dog[x][y];
+		}
+	}
+	
+}
+
+void drawDog(int dog_X, int dog_Y, short int background, int direction){
+	
+	//Dog dimensions are (starting at 0) 17x25 - total of 450 pixels
+	int x, y, color;
+	
+	//print
+	for(x=0; x<18; x++){
+		for(y=0; y<26; y++){
+			
+			if (direction == 0){
+				draw(dog_X + x, dog_Y + y, plot_Dog[x][y]);
+			} else if (direction == 1){
+				draw(dog_X + x, dog_Y + y, plotRev_Dog[x][y]);	
+			}
+		}
+	}
+	
+	
+}
+
+void drawGameLine(short int color){
+	
+	int x, y;
+	
+	for (x = 0; x < 320; x++){
+		for (y = 50; y < 60; y++){
+
+			draw(x, y, color);
+		}
+	}
+	
+}
+
+void drawEggLine(int y0, short int color){
+	
+	int x, y;
+	
+	for (x = 0; x < 320; x++){
+		for (y = y0; y < 239; y++){
+
+			draw(x, y, color);
+		}
+	}
+	
+}
+
+void drawBucket(int xPos, int yPos){
+	
+	int x, y;
+	
+	for(x = 0; x<18; x++){
+		for(y = 3; y<5; y++){
+			
+			draw(x + xPos, y + yPos, blue);
+		}
+	}
+	
+	for(y=0; y<5; y++){
+		
+		draw(xPos, y + yPos, blue);
+	}
+	
+	for(y=0; y<5; y++){
+		
+		draw(xPos + 17, y + yPos, blue);
+	}
+	
+}
+
+void drawEgg(int xPos, int yPos, short int color){
+	
+	int x, y;
+	
+	for(x = 2; x<5; x++){
+		for(y = 1; y<9; y++){
+			
+			draw(x + xPos, y + yPos, color);
+		}
+	}
+	
+	for(y=2; y<8; y++){
+		
+		draw(xPos+1, y + yPos, color);
+	}
+	
+	for(y=2; y<8; y++){
+		
+		draw(xPos + 5, y + yPos, color);
+	}
+	
+}
+
+void resetEggs(int k){
+
+	int j;
+	for(j = k; j < numOfEggs; j++){
+		if(j != numOfEggs - 1){
+			xPos_Egg[j] = xPos_Egg[j + 1];		
+			yPos_Egg[j] = yPos_Egg[j + 1];	
+		}
+	}
+	
+	numOfEggs--;
+}
+
+int main(void){
+	volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
+	*(pixel_ctrl_ptr + 1) = 0xC8000000;
+	waitForSync();
+	
+	pixel_buffer_start = *pixel_ctrl_ptr;
+    clear(black); // pixel_buffer_start points to the pixel buffer
+	
+	*(pixel_ctrl_ptr + 1) = 0xC0000000;
+	pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+	clear(black);
+	
+	//Define game starting parameters
+	defineBird(black);
+	defineDog(black);
+	int xPos_Bird = 1;
+	int xPos_Dog = 200;
+	int yPos_Bird = 15;
+	int runType = midRun;
+	int direction_Bird = right;
+	int direction_Dog = right;
+	int increment_Bird = 15;
+	int increment_Dog = 15;
+	int randomNum;
+	int i, l, k;
+	int eggLevel = 0;
+	int caughtEggs = 0;
+	
+	while(1){
+		
+		//Start the initial conditions for the game
+		clear(black);
+		drawGameLine(red);
+		
+		drawBird(xPos_Bird, yPos_Bird, black, direction_Bird, runType);
+		drawBucket(xPos_Dog, 209);
+		drawDog(xPos_Dog, 214, black, direction_Dog);
+		
+		//Bird and Egg Control/////////////////////////////////////////////////////////////////////////////////////////////
+		if(runType == midRun){
+			runType = running;
+			yPos_Bird = 18;
+		} else if (runType == running){
+			runType = notRunning;
+			yPos_Bird = 15;
+		} else if (runType == notRunning){
+			runType = midRun;
+			yPos_Bird = 15;
+		}
+			
+		//Random movements
+		randomNum =  rand() %1000;
+		
+		if(randomNum % 2 == 0){
+			direction_Bird = left;
+			
+			if(increment_Bird > 0){
+				increment_Bird = -increment_Bird;
+			}
+			
+		} else if(randomNum % 2 != 0){
+			direction_Bird = right;
+			
+			if(increment_Bird < 0){
+				increment_Bird = -increment_Bird;
+			}
+		}
+		
+		if(numOfEggs < 3 && randomNum < 500){
+			xPos_Egg[numOfEggs] = xPos_Bird;
+			yPos_Egg[numOfEggs] = yPos_Bird + 40;
+			numOfEggs++;
+		}
+		
+		for(i = 0; i < numOfEggs; i++){
+			
+			for(l = 0; l < 18; l++){
+				if(((yPos_Egg[i] + 10) == 209) && (xPos_Egg[i] == (xPos_Dog + l))){
+					resetEggs(i);
+					caughtEggs++;
+		    	} 
+			}
+
+			if((yPos_Egg[i] + 10) <= 239){
+				drawEgg(xPos_Egg[i], yPos_Egg[i], white);
+				yPos_Egg[i] = yPos_Egg[i] + 9;
+			} else if ((yPos_Egg[i] + 10) >= 239) {
+				resetEggs(i);
+				eggLevel = eggLevel + 1;
+			}
+		}
+		
+		//Boundry checks
+		if(xPos_Bird + 16 >= 305){
+			direction_Bird = left;
+			increment_Bird = -increment_Bird;
+			xPos_Bird = 100;
+			
+		}
+		
+		if(xPos_Bird <= 0){
+			direction_Bird = right;
+			increment_Bird = -increment_Bird;
+			xPos_Bird = 100;
+		}
+		
+		xPos_Bird = xPos_Bird + increment_Bird;
+		
+		//Dog Control//////////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		xPos_Dog = xPos_Dog + increment_Dog;
+		
+		if(xPos_Dog + 16 >= 300){
+			direction_Dog = left;
+			increment_Dog = -increment_Dog;
+		}
+		
+		if(xPos_Dog <= 0){
+			direction_Dog = right;
+			increment_Dog = -increment_Dog;
+		}
+		
+		if(eggLevel == 1){
+			drawEggLine(220, yellow);
+		} else if(eggLevel == 3){
+			drawEggLine(210, yellow);
+		} else if(eggLevel == 3){
+			drawEggLine(190, yellow);
+		}
+		
+		waitForSync(); // swap front and back buffers on VGA vertical sync
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
+		
+	}
+	
+	//drawBird(100, 100, blue, right, running);
+	//drawBird(200, 100, blue, right, notRunning);
+	//drawBird(300, 100, blue, right, midRun);
+	
+	return 0;
+}

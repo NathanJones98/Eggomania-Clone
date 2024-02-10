@@ -1,0 +1,255 @@
+volatile int pixel_buffer; 
+
+//Colors
+	short int black = 0;
+	short int green = 0x07E0;
+	short int red = 0xF800;
+	short int blue = 0x001F;
+	short int yellow = 0xFFE0;
+	short int pink = 0xF81F;
+	short int turquoise = 0x07FF;
+	short int orange = 111111110000000;
+
+//draw each pixel
+void draw(int x, int y, short int color){
+	
+	*(short int *)(pixel_buffer + (y << 10) + (x << 1)) = color;
+}
+
+void clear(short int color){
+	
+	int x;
+	int y;
+	
+	for (x = 0; x < 320; x++){
+		for (y = 0; y < 240; y++){
+
+			draw(x, y, color);
+		}
+	}
+			
+}
+
+void waitForSync(){
+
+	volatile int * pixel_control_ptr = (int *)0xFF203020;
+    volatile int * status =(int *)0xFF20302C;
+	
+	//write 1 to stop drawing
+    *pixel_control_ptr = 1;
+	
+    while((*status & 0x01) == 1){	
+	}
+    
+    //exit when S is 1
+    return;
+	
+}
+
+void drawBird(int bird_X, int bird_Y, short int background){
+	
+	//Bird dimension is (starting at 0) 15 x 31 - 512 total pixels
+	
+	int N = 512;
+	int x, y, color;
+	short int plot[16][32];
+	
+	//initialize the array
+	for(x=0; x<16; x++){
+		for(y=0; y<32; y++){
+			plot[x][y] = background;
+		}
+	}
+		
+	//hardcode for the bird
+	plot[2][0] = green;
+	plot[3][0] = green;
+	plot[10][0] = green;
+	plot[11][0] = green;
+	plot[4][1] = green;
+	plot[5][1] = green;
+	plot[8][1] = green;
+	plot[9][1] = green;
+	plot[6][2] = green;
+	plot[6][3] = green;
+	plot[6][4] = green;
+	plot[6][5] = green;
+	plot[7][2] = green;
+	plot[7][3] = green;
+	plot[7][4] = green;
+	plot[7][5] = green;
+	
+	plot[5][6] = turquoise;
+	plot[6][6] = turquoise;
+	plot[7][6] = turquoise;
+	plot[8][6] = turquoise;
+	
+	plot[4][7] = turquoise;
+	plot[5][7] = turquoise;
+	plot[6][7] = turquoise;
+	plot[7][7] = turquoise;
+	plot[8][7] = black;
+	plot[9][7] = turquoise;
+	plot[10][7] = turquoise;
+	plot[4][8] = turquoise;
+	plot[5][8] = turquoise;
+	plot[6][8] = turquoise;
+	plot[7][8] = turquoise;
+	plot[8][8] = black;
+	plot[9][8] = turquoise;
+	plot[10][8] = turquoise;
+	
+	plot[4][9] = turquoise;
+	plot[5][9] = turquoise;
+	plot[6][9] = turquoise;
+	plot[7][9] = turquoise;
+	plot[8][9] = turquoise;
+	plot[9][9] = turquoise;
+	plot[10][9] = turquoise;
+	plot[11][9] = turquoise;
+	plot[12][9] = turquoise;
+	
+	plot[4][10] = turquoise;
+	plot[5][10] = turquoise;
+	plot[6][10] = turquoise;
+	plot[7][10] = turquoise;
+	plot[8][10] = black;
+	plot[9][10] = pink;
+	plot[10][10] = pink;
+	plot[11][10] = pink;
+	plot[12][10] = pink;
+	plot[13][10] = pink;
+	
+	plot[5][11] = turquoise;
+	plot[6][11] = turquoise;
+	plot[7][11] = turquoise;
+	plot[8][11] = black;
+	plot[9][11] = black;
+	plot[10][11] = black;
+	plot[11][11] = black;
+	plot[12][11] = black;
+	plot[13][11] = black;
+	plot[6][12] = turquoise;
+	plot[7][12] = turquoise;
+	plot[8][12] = pink;
+	plot[9][12] = pink;
+	plot[10][12] = pink;
+	plot[11][12] = pink;
+	plot[12][12] = pink;
+	plot[13][12] = pink;
+	
+	plot[1][13] = orange;
+	plot[2][13] = orange;
+	plot[3][13] = orange;
+	plot[6][13] = orange;
+	plot[7][13] = orange;
+	
+	plot[2][14] = orange;
+	plot[3][14] = orange;
+	plot[4][14] = orange;
+	plot[6][14] = orange;
+	plot[7][14] = orange;
+	plot[8][14] = orange;
+	
+	plot[0][15] = orange;
+	plot[3][15] = orange;
+	plot[4][15] = orange;
+	plot[6][15] = orange;
+	plot[7][15] = orange;
+	plot[8][15] = orange;
+	
+	plot[0][16] = orange;
+	plot[1][16] = orange;
+	plot[4][16] = orange;
+	plot[7][16] = orange;
+	plot[8][16] = orange;
+	
+	for (x=4; x <11; x++){
+		for(y=17; y<25; y++){
+			
+			plot[x][y] = orange;
+			
+		}
+	}
+		
+	plot[1][17] = ;
+	plot[2][17] = ;
+	
+	plot[][18] = ;
+	plot[][18] = ;
+	plot[][18] = ;
+	
+	plot[][19] = ;
+	plot[][19] = ;
+	plot[][19] = ;
+	plot[][19] = ;
+	
+	plot[][20] = ;
+	plot[][20] = ;
+	plot[][20] = ;
+	plot[][20] = ;
+	plot[][20] = ;
+	
+	plot[][22] = ;
+	plot[][22] = ;
+	plot[][22] = ;
+	plot[][22] = ;
+	
+	plot[][23] = ;
+	plot[][23] = ;
+	plot[][23] = ;
+	plot[][23] = ;
+	plot[][23] = ;
+	plot[][23] = ;
+	
+	plot[][24] = ;
+	plot[][24] = ;
+	plot[][24] = ;
+	
+	for(x=5; x<11; x++){
+		plot[x][25] = orange;
+	}
+	
+	for (x=5; x <7; x++){
+		for(y=26; y<31; y++){
+			
+			plot[x][y] = yellow;
+			
+		}
+	}
+	
+	for (x=9; x <11; x++){
+		for(y=26; y<31; y++){
+			
+			plot[x][y] = yellow;
+			
+		}
+	}
+	
+	plot[4][29] = yellow;
+	plot[11][29] = yellow;
+	plot[3][30] = yellow;
+	plot[4][30] = yellow;
+	plot[11][30] = yellow;
+	plot[12][30] = yellow;
+	
+	//initialize the array
+	for(x=0; x<16; x++){
+		for(y=0; y<32; y++){
+			draw(bird_X + x, bird_Y + y, plot[x][y]);
+		}
+	}
+	
+}
+	
+int main(void){
+	
+	volatile int * pixel_control_ptr = (int *)0xFF203020;
+    pixel_buffer = *pixel_control_ptr;
+	
+	clear(black);
+	drawBird(100, 100, blue);
+	
+	
+	return 0;
+}
